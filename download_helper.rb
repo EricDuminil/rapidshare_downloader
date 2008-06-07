@@ -54,14 +54,14 @@ class Download
       
       open("cookies.txt","w") {|f| f.write(".rapidshare.com\tTRUE\t/\tFALSE\t1731510000\t#{cookie}\n")}
       
-      #system("wget -q --load-cookie cookies.txt -O #{target} #{download_link}")
+      system("wget -q --load-cookie cookies.txt -O #{target} #{download_link}")
       
       puts "Download finished : #{filename} (in #{Time.now-start} s.)"
     end
-#  rescue => e
-#    puts "been here"
-#    puts e.inspect
-#    @should_stop=!KeepDownloading
+  rescue => e
+    puts "Some problem"
+    puts e.inspect
+    @should_stop=!KeepDownloading
   ensure
     launch_new_download_chain(dl_list) unless @should_stop or dl_list.empty?
   end

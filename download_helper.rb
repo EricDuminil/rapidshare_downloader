@@ -42,27 +42,26 @@ class Download
       download_button=download_form.buttons.first
       page = agent.submit(download_form, download_button)
       
-      available_download_links=page.links.text(DownloadServer)
-      one_download_link=available_download_links.pick_one
-      one_download_link.text=~DownloadServer
-      server_name=$1
+      dl=page.forms.find{|f| f.name=="dlf"}
+      download_link=dl.action
+
+      #server_name=dl.radiobuttons.find{|rb| rb.checked}
+      server_name=download_link
       
       puts "Downloading #{filename} from #{server_name}"
-      start=Time.now    
+      start=Time.now
       cookie=agent.cookies.first.to_s.sub(/=/,"\t")
       
       open("cookies.txt","w") {|f| f.write(".rapidshare.com\tTRUE\t/\tFALSE\t1731510000\t#{cookie}\n")}
       
-      #file_to_dl=agent.get_file one_download_link.href
-      system("wget -q --load-cookie cookies.txt -O #{target} #{one_download_link.href}")
-      #      open(target, "wb") {|file|
-      #        file.write(file_to_dl)
-      #      }
+      #system("wget -q --load-cookie cookies.txt -O #{target} #{download_link}")
+      
       puts "Download finished : #{filename} (in #{Time.now-start} s.)"
     end
-  rescue => e
-    puts "been here"
-    @should_stop=!KeepDownloading
+#  rescue => e
+#    puts "been here"
+#    puts e.inspect
+#    @should_stop=!KeepDownloading
   ensure
     launch_new_download_chain(dl_list) unless @should_stop or dl_list.empty?
   end

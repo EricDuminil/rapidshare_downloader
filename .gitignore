@@ -1,3 +1,5 @@
+.loadpath
+.project
 download/*
 cookies.txt
 download_options.yml

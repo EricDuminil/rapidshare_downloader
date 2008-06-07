@@ -1,0 +1,6 @@
+login                      : anonymous
+#password                  : my_password
+
+download_list_file         : "to_download.txt"
+download_dir               : "download/"
+max_simultaneous_downloads : 3

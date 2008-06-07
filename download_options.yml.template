@@ -1,6 +1,10 @@
-login                      : anonymous
-#password                  : my_password
-
-download_list_file         : "to_download.txt"
-download_dir               : "download/"
+login: my_login
+password: my_password
+### Number of simultaneous downloads
 max_simultaneous_downloads : 3
+### Plain text file in which links should be stored:
+download_list_file         : "to_download.txt"
+### Files will be downloaded in this directory:
+download_dir               : "download/"
+### Keep trying to download, even if one download from the list failed.
+keep_downloading           : false

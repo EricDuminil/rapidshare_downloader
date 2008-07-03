@@ -8,7 +8,11 @@ KeepDownloading  = DL_options['keep_downloading']=~/(true|yes)/
 
 
 FileUtils.mkpath DownloadDir
-DownloadType    = Password.empty? ? 'Free' : 'PREMIUM'
+DownloadType    = Password.empty? ? /Free/ : /Premium/
 
-RapidShareURL=/(http:\/\/rapidshare\.com\/files\/\d{1,10}\/(\S+))/
+if ARGV[0]=="href" then
+  RapidShareURL=/href="(http:\/\/rapidshare\.com\/files\/\d{1,10}\/(\S+))"/
+else
+  RapidShareURL=/(http:\/\/rapidshare\.com\/files\/\d{1,10}\/(\S+))/
+end
 DownloadServer=/Download via (.*)/

@@ -29,8 +29,8 @@ class Download
       agent = WWW::Mechanize.new
       page = agent.get(download_url)
       
-      form=page.forms.first
-      free_or_premium_button=form.buttons.find{|b| b.value==DownloadType}
+      form=page.forms.find{|f| f.buttons.first.value=~DownloadType}
+      free_or_premium_button=form.buttons.first
       page = agent.submit(form, free_or_premium_button)
       
       premium_login_form=page.forms.last
@@ -46,9 +46,8 @@ class Download
       download_link=dl.action
 
       #server_name=dl.radiobuttons.find{|rb| rb.checked}
-      server_name=download_link
-      
-      puts "Downloading #{filename} from #{server_name}"
+     server_name = download_link
+     puts "Downloading #{filename} from #{server_name}"
       start=Time.now
       cookie=agent.cookies.first.to_s.sub(/=/,"\t")
       

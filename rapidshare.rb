@@ -4,7 +4,8 @@ require 'download_helper'
 require 'load_configuration'
 
 
-download_list=File.read(InputFile).grep(RapidShareURL){[$1,$2]}
+download_list=File.read(InputFile).grep(RapidShareURL){[$1,$2]}.uniq
+
 downloads_number=download_list.size
 
 dl=Download.new(download_list, MaxSimDownloads)

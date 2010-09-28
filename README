@@ -1,1 +1,4 @@
 A very simple rapidshare downloader written in Ruby.
+
+As of 28th September 2010, this script doesn't work anymore : Rapidshare has changed its website and I have no idea how to retrieve the download information without a Javascript-enabled browser.
+

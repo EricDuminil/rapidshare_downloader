@@ -25,7 +25,7 @@ class Download
     if File.exist?(target) then
       puts "File : #{target} already existing"
     else
-      
+      puts "Trying : #{filename}"
       agent = WWW::Mechanize.new
       page = agent.get(download_url)
       
@@ -47,19 +47,22 @@ class Download
 
       #server_name=dl.radiobuttons.find{|rb| rb.checked}
      server_name = download_link
+     puts "Link : #{download_link}"
      puts "Downloading #{filename} from #{server_name}"
       start=Time.now
       cookie=agent.cookies.first.to_s.sub(/=/,"\t")
       
       open("cookies.txt","w") {|f| f.write(".rapidshare.com\tTRUE\t/\tFALSE\t1731510000\t#{cookie}\n")}
+      sleep(1)
       
-      system("wget -q --load-cookie cookies.txt -O #{target} #{download_link}")
+      system("wget -q --load-cookie cookies.txt -O #{target} --read-timeout=5 #{download_link}")
       
       puts "Download finished : #{filename} (in #{Time.now-start} s.)"
     end
   rescue => e
     puts "Some problem"
     puts e.inspect
+    raise e
     @should_stop=!KeepDownloading
   ensure
     launch_new_download_chain(dl_list) unless @should_stop or dl_list.empty?

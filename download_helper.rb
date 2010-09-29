@@ -89,7 +89,7 @@ class Download
     else
       puts "Trying : #{filename}"
       start=Time.now
-      system("wget -O #{target} --read-timeout=5 \"#{download_url(file_id, filename)}\"")
+      system("wget -q -O #{target} --read-timeout=5 \"#{download_url(file_id, filename)}\"")
       puts "Download finished : #{filename} (in #{Time.now-start} s.)"
     end
   rescue => e
@@ -100,6 +100,7 @@ class Download
   ensure
     launch_new_download_chain(dl_list) unless @should_stop or dl_list.empty?
   end
+end
 
 class Array
   def pick_one

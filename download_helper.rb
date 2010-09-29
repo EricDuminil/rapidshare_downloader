@@ -1,4 +1,6 @@
-%w{rubygems mechanize net/http fileutils thread yaml}.each{|lib| require lib}
+%w{open-uri fileutils thread yaml}.each{|lib| require lib}
+
+class RapidshareError < RuntimeError ;end
 
 class Download
   def initialize(download_list, simultaneous_downloads)
@@ -16,47 +18,78 @@ class Download
   end
   
   protected
-  
+
+  def response_parameters(response)
+    Hash[*response.split("\n").map{|line| line.split("=")}.flatten]
+  end
+
+  def download_content(url)
+    open(url){|src| src.read}
+  end
+
+  #NOTE: Needed?
+  def get_cookie
+    account_details=call_rapidshare_api('getaccountdetails_v1',credentials.merge(:withcookie=>1),'https')
+    response_parameters(account_details)["cookie"]
+  end
+
+  def credentials
+    {:login=> Login, :password => Password}
+  end
+
+  def check_filestatus(file_id, filename)
+    file_status=call_rapidshare_api('checkfiles_v1', {:files => file_id, :filenames => filename})
+    fid, fname, size, server_id, status, short_host = file_status.split(',')
+    case status
+      when '0' then raise RapidshareError, "File Not Found"
+      when '1' then "http://rs#{server_id}#{short_host}.rapidshare.com/files/#{fid}/#{fname}"
+      when '3' then raise RapidshareError, "Server Down"
+      when '4' then raise RapidshareError, "File Marked As Illegal"
+      when '5' then raise RapidshareError, "Anonymous File Locked"
+      else raise 'NotImplemented : TrafficShare'
+    end
+  end
+
+  def servername(file_id, filename)
+    call_rapidshare_api('download_v1', {:fileid => file_id, :filename => filename, :try => 1}.merge(credentials)).split(',').first.split(':').last
+  end
+
+  def download_url(file_id, filename,http='http')
+    check_filestatus(file_id, filename)
+    svr_name=servername(file_id, filename)
+    puts "Downloading #{filename} from #{svr_name}"
+    url="#{http}://#{svr_name}/cgi-bin/rsapi.cgi"+url_params('download_v1',{:fileid => file_id, :filename => filename}.merge(credentials))
+  end
+
+  #NOTE: Needed?
+  def cookie
+    @@cookie||=get_cookie
+  end
+
+  def call_rapidshare_api(action, params, http='http', server='api.rapidshare.com')
+    url="#{http}://#{server}/cgi-bin/rsapi.cgi"+url_params(action,params)
+    response = download_content(url)
+    if response =~ /^ERROR: (.*)/
+      raise "RapidshareError : #{$1}"
+    else
+      response
+    end
+  end
+
+  def url_params(action,params)
+    '?'+{:sub=>action}.merge(params).map{|v,k| "#{v}=#{k}"}.join("&")
+  end
+
   def launch_new_download_chain(dl_list)
     return if dl_list.empty?
-    download_url, filename=dl_list.shift
-    
+    rapidshare_url, file_id, filename=dl_list.shift
     target=File.join(DownloadDir,filename)
     if File.exist?(target) then
       puts "File : #{target} already existing"
     else
       puts "Trying : #{filename}"
-      agent = WWW::Mechanize.new
-      page = agent.get(download_url)
-      
-      form=page.forms.find{|f| f.buttons.first.value=~DownloadType}
-      free_or_premium_button=form.buttons.first
-      page = agent.submit(form, free_or_premium_button)
-      
-      premium_login_form=page.forms.last
-      premium_login_form.accountid=Login
-      premium_login_form.password=Password
-      page = agent.submit(premium_login_form)
-      
-      download_form=page.forms.last
-      download_button=download_form.buttons.first
-      page = agent.submit(download_form, download_button)
-      
-      dl=page.forms.find{|f| f.name=="dlf"}
-      download_link=dl.action
-
-      #server_name=dl.radiobuttons.find{|rb| rb.checked}
-     server_name = download_link
-     puts "Link : #{download_link}"
-     puts "Downloading #{filename} from #{server_name}"
       start=Time.now
-      cookie=agent.cookies.first.to_s.sub(/=/,"\t")
-      
-      open("cookies.txt","w") {|f| f.write(".rapidshare.com\tTRUE\t/\tFALSE\t1731510000\t#{cookie}\n")}
-      sleep(1)
-      
-      system("wget -q --load-cookie cookies.txt -O #{target} --read-timeout=5 #{download_link}")
-      
+      system("wget -O #{target} --read-timeout=5 \"#{download_url(file_id, filename)}\"")
       puts "Download finished : #{filename} (in #{Time.now-start} s.)"
     end
   rescue => e
@@ -67,7 +100,6 @@ class Download
   ensure
     launch_new_download_chain(dl_list) unless @should_stop or dl_list.empty?
   end
-end
 
 class Array
   def pick_one

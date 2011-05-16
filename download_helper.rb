@@ -1,4 +1,4 @@
-%w{open-uri fileutils thread yaml}.each{|lib| require lib}
+%w{open-uri fileutils thread yaml net/http net/https}.each{|lib| require lib}
 
 class RapidshareError < RuntimeError ;end
 
@@ -24,6 +24,7 @@ class Download
   end
 
   def download_content(url)
+    puts "\t->Getting #{url}"
     open(url){|src| src.read}
   end
 
@@ -42,7 +43,7 @@ class Download
     fid, fname, size, server_id, status, short_host = file_status.split(',')
     case status
       when '0' then raise RapidshareError, "File Not Found"
-      when '1' then "http://rs#{server_id}#{short_host}.rapidshare.com/files/#{fid}/#{fname}"
+      when '1' then "https://rs#{server_id}#{short_host}.rapidshare.com/files/#{fid}/#{fname}"
       when '3' then raise RapidshareError, "Server Down"
       when '4' then raise RapidshareError, "File Marked As Illegal"
       when '5' then raise RapidshareError, "Anonymous File Locked"
@@ -54,7 +55,7 @@ class Download
     call_rapidshare_api('download_v1', {:fileid => file_id, :filename => filename, :try => 1}.merge(credentials)).split(',').first.split(':').last
   end
 
-  def download_url(file_id, filename,http='http')
+  def download_url(file_id, filename,http='https')
     check_filestatus(file_id, filename)
     svr_name=servername(file_id, filename)
     puts "Downloading #{filename} from #{svr_name}"
@@ -66,7 +67,7 @@ class Download
     @@cookie||=get_cookie
   end
 
-  def call_rapidshare_api(action, params, http='http', server='api.rapidshare.com')
+  def call_rapidshare_api(action, params, http='https', server='api.rapidshare.com')
     url="#{http}://#{server}/cgi-bin/rsapi.cgi"+url_params(action,params)
     response = download_content(url)
     if response =~ /^ERROR: (.*)/

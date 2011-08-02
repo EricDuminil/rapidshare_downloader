@@ -47,7 +47,7 @@ class Download
       when '3' then raise RapidshareError, "Server Down"
       when '4' then raise RapidshareError, "File Marked As Illegal"
       when '5' then raise RapidshareError, "Anonymous File Locked"
-      else raise 'NotImplemented : TrafficShare'
+      else raise "NotImplemented : TrafficShare #{status}"
     end
   end
 

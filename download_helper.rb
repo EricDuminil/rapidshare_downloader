@@ -30,7 +30,7 @@ class Download
 
   #NOTE: Needed?
   def get_cookie
-    account_details=call_rapidshare_api('getaccountdetails_v1',credentials.merge(:withcookie=>1),'https')
+    account_details=call_rapidshare_api('getaccountdetails',credentials.merge(:withcookie=>1),'https')
     response_parameters(account_details)["cookie"]
   end
 
@@ -39,7 +39,7 @@ class Download
   end
 
   def check_filestatus(file_id, filename)
-    file_status=call_rapidshare_api('checkfiles_v1', {:files => file_id, :filenames => filename})
+    file_status=call_rapidshare_api('checkfiles', {:files => file_id, :filenames => filename})
     fid, fname, size, server_id, status, short_host = file_status.split(',')
     case status
       when '0' then raise RapidshareError, "File Not Found"
@@ -52,14 +52,14 @@ class Download
   end
 
   def servername(file_id, filename)
-    call_rapidshare_api('download_v1', {:fileid => file_id, :filename => filename, :try => 1}.merge(credentials)).split(',').first.split(':').last
+    call_rapidshare_api('download', {:fileid => file_id, :filename => filename, :try => 1}.merge(credentials)).split(',').first.split(':').last
   end
 
   def download_url(file_id, filename,http='https')
     check_filestatus(file_id, filename)
     svr_name=servername(file_id, filename)
     puts "Downloading #{filename} from #{svr_name}"
-    url="#{http}://#{svr_name}/cgi-bin/rsapi.cgi"+url_params('download_v1',{:fileid => file_id, :filename => filename}.merge(credentials))
+    url="#{http}://#{svr_name}/cgi-bin/rsapi.cgi"+url_params('download',{:fileid => file_id, :filename => filename}.merge(credentials))
   end
 
   #NOTE: Needed?

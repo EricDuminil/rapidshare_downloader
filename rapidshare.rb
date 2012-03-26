@@ -4,7 +4,7 @@ require 'download_helper'
 require 'load_configuration'
 
 
-download_list=File.read(InputFile).gsub(/https?:\/\/rapidshare.com\/#!download\|.*?\|(\d+)\|(.*?)\|\d+\|.*/,'https://rapidshare.com/files/\1/\2').scan(RapidShareURL)
+download_list=File.read(InputFile).gsub(/https?:\/\/\w*\.*rapidshare.com\/#!download\|.*?\|(\d+)\|(.*?)\|\d+\|.*/,'https://rapidshare.com/files/\1/\2').scan(RapidShareURL)
 
 downloads_number=download_list.size
 

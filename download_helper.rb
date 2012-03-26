@@ -85,12 +85,16 @@ class Download
     return if dl_list.empty?
     rapidshare_url, file_id, filename=dl_list.shift
     target=File.join(DownloadDir,filename)
-    if File.exist?(target) then
+    if File.exist?(target) && File.size(target)>0 then
       puts "File : #{target} already existing"
     else
       puts "Trying : #{filename}"
       start=Time.now
-      system("wget -q -O #{target} --read-timeout=5 \"#{download_url(file_id, filename)}\"")
+      #system("wget -q -O #{target} --read-timeout=5 \"#{download_url(file_id, filename)}\"")
+      #cmd="curl --silent --connect-timeout 5 #{download_url(file_id, filename)} -o #{target}"
+      cmd="curl --silent \"#{download_url(file_id, filename)}\" -o #{target}"
+      puts cmd
+      system(cmd)
       puts "Download finished : #{filename} (in #{Time.now-start} s.)"
     end
   rescue => e
